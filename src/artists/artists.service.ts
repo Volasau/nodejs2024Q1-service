@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { data } from 'src/data/data';
 
 @Injectable()
 export class ArtistsService {
@@ -9,7 +10,7 @@ export class ArtistsService {
   }
 
   findAll() {
-    return `This action returns all artists`;
+    return data.artists;
   }
 
   findOne(id: number) {

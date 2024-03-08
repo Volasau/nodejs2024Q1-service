@@ -30,6 +30,14 @@ export class ArtistsService {
         'You forgot to fill in your name or grammy',
       );
     }
+
+    if (
+      typeof createArtistDto.name !== 'string' ||
+      typeof createArtistDto.grammy !== 'boolean'
+    ) {
+      throw new BadRequestException('Name or grammy invalid type');
+    }
+
     const artist = {
       id: uuidv4(),
       name: createArtistDto.name,
@@ -39,8 +47,27 @@ export class ArtistsService {
     return artist;
   }
 
-  update(id: number, updateArtistDto: UpdateArtistDto) {
-    return `This action updates a #${id} artist`;
+  update(id: string, updateArtistDto: UpdateArtistDto) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+
+    const index = data.artists.findIndex((artist) => artist.id === id);
+    if (index === -1) throw new NotFoundException('Not found artist');
+
+    if (
+      (updateArtistDto.name && typeof updateArtistDto.name !== 'string') ||
+      (updateArtistDto.grammy && typeof updateArtistDto.grammy !== 'boolean')
+    )
+      throw new BadRequestException('Name or grammy invalid type');
+    const artist = data.artists.find((artist) => artist.id === id);
+
+    const newArtistData = {
+      ...artist,
+      name: updateArtistDto.name,
+      grammy: updateArtistDto.grammy,
+    };
+
+    data.artists[index] = newArtistData;
+    return newArtistData;
   }
 
   remove(id: string) {

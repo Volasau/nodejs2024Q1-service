@@ -11,7 +11,7 @@ import { AlbumsService } from './albums.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 
-@Controller('albums')
+@Controller('album')
 export class AlbumsController {
   constructor(private readonly albumsService: AlbumsService) {}
 
@@ -27,7 +27,7 @@ export class AlbumsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.albumsService.findOne(+id);
+    return this.albumsService.findOne(id);
   }
 
   @Put(':id')

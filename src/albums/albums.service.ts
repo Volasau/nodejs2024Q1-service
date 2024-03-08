@@ -17,7 +17,7 @@ export class AlbumsService {
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = data.artists.find((album) => album.id === id);
+    const album = data.albums.find((album) => album.id === id);
     if (!album) {
       throw new NotFoundException('Not found artist');
     }
@@ -25,7 +25,23 @@ export class AlbumsService {
   }
 
   create(createAlbumDto: CreateAlbumDto) {
-    return 'This action adds a new album';
+    if (
+      !createAlbumDto.name ||
+      !createAlbumDto.year ||
+      typeof createAlbumDto.name !== 'string' ||
+      typeof createAlbumDto.year !== 'number'
+    ) {
+      throw new BadRequestException('Name or year invalid type');
+    }
+
+    const newAlbumData = {
+      id: uuidv4(),
+      name: createAlbumDto.name,
+      year: createAlbumDto.year,
+      artistId: null,
+    };
+    data.albums.push(newAlbumData);
+    return newAlbumData;
   }
 
   update(id: number, updateAlbumDto: UpdateAlbumDto) {

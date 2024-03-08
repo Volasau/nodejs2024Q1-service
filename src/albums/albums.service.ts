@@ -48,7 +48,12 @@ export class AlbumsService {
     return `This action updates a #${id} album`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} album`;
+  remove(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.albums.findIndex((albums) => albums.id === id);
+    if (index === -1) throw new NotFoundException('Album not found');
+
+    data.artists.splice(index, 1);
+    return;
   }
 }

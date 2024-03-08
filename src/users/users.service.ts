@@ -57,7 +57,7 @@ export class UsersService {
   }
 
   update(id: string, updateUserDto: UpdatePasswordDto) {
-    if (!validate(id)) throw new BadRequestException('Invalid id');
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
 
     if (
       !(updateUserDto.oldPassword && updateUserDto.newPassword) ||
@@ -88,7 +88,7 @@ export class UsersService {
   }
 
   remove(id: string) {
-    if (!validate(id)) throw new BadRequestException('Invalid id');
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const index = data.users.findIndex((user) => user.id === id);
     if (index === -1) throw new NotFoundException('User not found');
 

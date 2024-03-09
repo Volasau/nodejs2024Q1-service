@@ -32,4 +32,46 @@ export class FavoritesService {
     data.favorites.albums.splice(index, 1);
     return;
   }
+
+  addArtistToFavorites(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.artists.findIndex((artist) => artist.id === id);
+    if (index === -1)
+      throw new UnprocessableEntityException('Artist does not exist');
+    const artist = data.artists[index];
+
+    data.favorites.artists.push(artist);
+    return artist;
+  }
+
+  removeArtist(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.favorites.artists.findIndex(
+      (artist) => artist.id === id,
+    );
+    if (index === -1) throw new NotFoundException('Artist not found');
+
+    data.favorites.artists.splice(index, 1);
+    return;
+  }
+
+  addTrackToFavorite(id: string) {
+    if (!validate(id)) throw new BadRequestException('invalid id');
+    const index = data.tracks.findIndex((track) => track.id === id);
+    if (index === -1)
+      throw new UnprocessableEntityException('Track does not exist');
+    const track = data.tracks[index];
+
+    data.favorites.tracks.push(track);
+    return track;
+  }
+
+  removeTrack(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.favorites.tracks.findIndex((track) => track.id === id);
+    if (index === -1) throw new NotFoundException('Track not found');
+
+    data.favorites.tracks.splice(index, 1);
+    return;
+  }
 }

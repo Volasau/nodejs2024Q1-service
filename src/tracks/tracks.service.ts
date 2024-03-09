@@ -25,6 +25,18 @@ export class TracksService {
   }
 
   create(createTrackDto: CreateTrackDto) {
+    if (!(createTrackDto?.name && createTrackDto?.duration)) {
+      throw new BadRequestException('You forgot to fill in name or duration');
+    }
+
+    if (typeof createTrackDto?.name !== 'string') {
+      throw new BadRequestException('Name should be a string');
+    }
+
+    if (typeof createTrackDto?.duration !== 'number') {
+      throw new BadRequestException('Duration should be a number');
+    }
+
     const newTrackData = {
       id: uuidv4(),
       name: createTrackDto.name,

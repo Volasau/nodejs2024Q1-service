@@ -23,6 +23,7 @@ export class TracksService {
     }
     return track;
   }
+
   create(createTrackDto: CreateTrackDto) {
     const newTrackData = {
       id: uuidv4(),
@@ -36,13 +37,53 @@ export class TracksService {
     return newTrackData;
   }
 
-  update(id: number, updateTrackDto: UpdateTrackDto) {
-    return `This action updates a #${id} track`;
+  update(id: string, updateTrackDto: UpdateTrackDto) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.tracks.findIndex((track) => track.id === id);
+    if (index === -1) throw new NotFoundException('Not found track');
+
+    if (
+      !updateTrackDto.name &&
+      !updateTrackDto.duration &&
+      !updateTrackDto.artistId &&
+      !updateTrackDto.albumId &&
+      updateTrackDto.name &&
+      typeof updateTrackDto.name !== 'string'
+    ) {
+      throw new BadRequestException('Name not string type');
+    }
+
+    if (
+      updateTrackDto.duration &&
+      typeof updateTrackDto.duration !== 'number'
+    ) {
+      throw new BadRequestException('Duration not number type');
+    }
+
+    if (
+      updateTrackDto.artistId &&
+      typeof updateTrackDto.artistId !== 'string'
+    ) {
+      throw new BadRequestException('ArtistId not string type');
+    }
+
+    if (updateTrackDto.albumId && typeof updateTrackDto.albumId !== 'string') {
+      throw new BadRequestException('AlbumId not string type');
+    }
+
+    const track = data.tracks.find((track) => track.id === id);
+    const newTrackData = {
+      ...track,
+      ...updateTrackDto,
+    };
+
+    data.tracks[index] = newTrackData;
+    return newTrackData;
   }
 
   remove(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.tracks.findIndex((tracks) => tracks.id === id);
+    const index = data.tracks.findIndex((track) => track.id === id);
     if (index === -1) throw new NotFoundException('Tracks not found');
 
     data.tracks.splice(index, 1);

@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFavoriteDto } from './dto/create-favorite.dto';
-import { UpdateFavoriteDto } from './dto/update-favorite.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { data } from 'src/data/data';
+import { validate } from 'uuid';
 
 @Injectable()
 export class FavoritesService {
-  create(createFavoriteDto: CreateFavoriteDto) {
-    return 'This action adds a new favorite';
-  }
-
   findAll() {
-    return `This action returns all favorites`;
+    return data.favorites;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} favorite`;
+  addAlbumToFavorites(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.albums.findIndex((album) => album.id === id);
+    if (index === -1)
+      throw new UnprocessableEntityException('Album does not exist');
+    const album = data.albums.find((album) => album.id === id);
+
+    data.favorites.albums.push(album);
+    return album;
   }
 
-  update(id: number, updateFavoriteDto: UpdateFavoriteDto) {
-    return `This action updates a #${id} favorite`;
-  }
+  removeAlbum(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.favorites.albums.findIndex((album) => album.id === id);
+    if (index === -1) throw new NotFoundException('Album not found');
 
-  remove(id: number) {
-    return `This action removes a #${id} favorite`;
+    data.favorites.albums.splice(index, 1);
+    return;
   }
 }

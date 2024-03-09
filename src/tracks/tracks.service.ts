@@ -17,21 +17,35 @@ export class TracksService {
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const artist = data.tracks.find((track) => track.id === id);
-    if (!artist) {
-      throw new NotFoundException('Not found artist');
+    const track = data.tracks.find((track) => track.id === id);
+    if (!track) {
+      throw new NotFoundException('Not found track');
     }
-    return artist;
+    return track;
   }
   create(createTrackDto: CreateTrackDto) {
-    return 'This action adds a new track';
+    const newTrackData = {
+      id: uuidv4(),
+      name: createTrackDto.name,
+      duration: createTrackDto.duration,
+      artistId: createTrackDto?.artistId,
+      albumId: createTrackDto?.albumId,
+    };
+
+    data.tracks.push(newTrackData);
+    return newTrackData;
   }
 
   update(id: number, updateTrackDto: UpdateTrackDto) {
     return `This action updates a #${id} track`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} track`;
+  remove(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.tracks.findIndex((tracks) => tracks.id === id);
+    if (index === -1) throw new NotFoundException('Tracks not found');
+
+    data.tracks.splice(index, 1);
+    return;
   }
 }

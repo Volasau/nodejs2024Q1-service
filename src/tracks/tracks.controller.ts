@@ -37,6 +37,6 @@ export class TracksController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.tracksService.remove(+id);
+    return this.tracksService.remove(id);
   }
 }

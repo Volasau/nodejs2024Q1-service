@@ -43,6 +43,7 @@ export class ArtistsService {
       name: createArtistDto.name,
       grammy: createArtistDto.grammy,
     };
+
     data.artists.push(artist);
     return artist;
   }
@@ -74,6 +75,14 @@ export class ArtistsService {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const index = data.artists.findIndex((artist) => artist.id === id);
     if (index === -1) throw new NotFoundException('Artists not found');
+
+    data.albums.forEach((album) => {
+      if (album.artistId === id) album.artistId = null;
+    });
+
+    data.tracks.forEach((track) => {
+      if (track.artistId === id) track.artistId = null;
+    });
 
     data.artists.splice(index, 1);
     return;

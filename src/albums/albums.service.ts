@@ -44,8 +44,35 @@ export class AlbumsService {
     return newAlbumData;
   }
 
-  update(id: number, updateAlbumDto: UpdateAlbumDto) {
-    return `This action updates a #${id} album`;
+  update(id: string, updateAlbumDto: UpdateAlbumDto) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const index = data.albums.findIndex((artist) => artist.id === id);
+    if (index === -1) throw new NotFoundException('Not found albums');
+
+    if (!updateAlbumDto?.name && !updateAlbumDto?.year)
+      throw new BadRequestException('You forgot to fill in name or year');
+
+    if (updateAlbumDto.name && typeof updateAlbumDto.name !== 'string') {
+      throw new BadRequestException('Name should be a string');
+    }
+
+    if (updateAlbumDto.year && typeof updateAlbumDto.year !== 'number') {
+      throw new BadRequestException('Year should be a number');
+    }
+    if (
+      updateAlbumDto.artistId &&
+      typeof updateAlbumDto.artistId !== 'string'
+    ) {
+      throw new BadRequestException('ArtistId should be a string');
+    }
+
+    const updatedAlbum = {
+      ...data.albums[index],
+      ...updateAlbumDto,
+    };
+
+    data.albums[index] = updatedAlbum;
+    return updatedAlbum;
   }
 
   remove(id: string) {
@@ -53,7 +80,13 @@ export class AlbumsService {
     const index = data.albums.findIndex((albums) => albums.id === id);
     if (index === -1) throw new NotFoundException('Album not found');
 
-    data.artists.splice(index, 1);
+    data.tracks.forEach((track) => {
+      if (track.albumId === id) track.albumId = null;
+    });
+
+    data.favorites.albums = data.albums.filter((album) => album.id !== id);
+
+    data.albums.splice(index, 1);
     return;
   }
 }

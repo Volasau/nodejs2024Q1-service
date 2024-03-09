@@ -56,7 +56,7 @@ export class FavoritesService {
   }
 
   addTrackToFavorite(id: string) {
-    if (!validate(id)) throw new BadRequestException('invalid id');
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const index = data.tracks.findIndex((track) => track.id === id);
     if (index === -1)
       throw new UnprocessableEntityException('Track does not exist');

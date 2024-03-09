@@ -33,7 +33,7 @@ export class AlbumsController {
 
   @Put(':id')
   update(@Param('id') id: string, @Body() updateAlbumDto: UpdateAlbumDto) {
-    return this.albumsService.update(+id, updateAlbumDto);
+    return this.albumsService.update(id, updateAlbumDto);
   }
 
   @Delete(':id')

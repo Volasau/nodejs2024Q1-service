@@ -98,6 +98,10 @@ export class TracksService {
     const index = data.tracks.findIndex((track) => track.id === id);
     if (index === -1) throw new NotFoundException('Tracks not found');
 
+    data.favorites.tracks = data.favorites.tracks.filter(
+      (artist) => artist.id !== id,
+    );
+
     data.tracks.splice(index, 1);
     return;
   }

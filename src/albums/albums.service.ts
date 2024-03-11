@@ -38,7 +38,7 @@ export class AlbumsService {
       id: uuidv4(),
       name: createAlbumDto.name,
       year: createAlbumDto.year,
-      artistId: null,
+      artistId: createAlbumDto.artistId || null,
     };
     data.albums.push(newAlbumData);
     return newAlbumData;
@@ -87,6 +87,7 @@ export class AlbumsService {
     data.favorites.albums = data.albums.filter((album) => album.id !== id);
 
     data.albums.splice(index, 1);
+
     return;
   }
 }

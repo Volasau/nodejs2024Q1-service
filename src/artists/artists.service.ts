@@ -8,23 +8,32 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { data } from 'src/data/data';
 import { validate } from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Artist } from './entities/artist.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ArtistsService {
-  findAll() {
-    return data.artists;
+  @InjectRepository(Artist)
+  private artistRepository: Repository<Artist>;
+
+  async findAll(): Promise<Artist[]> {
+    const artists = await this.artistRepository.find();
+    return artists;
   }
 
-  findOne(id: string) {
+  async findOne(id: string): Promise<Artist> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const artist = data.artists.find((artist) => artist.id === id);
+    const artist = await this.artistRepository.findOne({
+      where: { id: id },
+    });
     if (!artist) {
       throw new NotFoundException('Not found artist');
     }
     return artist;
   }
 
-  create(createArtistDto: CreateArtistDto) {
+  async create(createArtistDto: CreateArtistDto): Promise<Artist> {
     if (!createArtistDto.name || !createArtistDto.grammy) {
       throw new BadRequestException(
         'You forgot to fill in your name or grammy',
@@ -44,22 +53,23 @@ export class ArtistsService {
       grammy: createArtistDto.grammy,
     };
 
-    data.artists.push(artist);
+    await this.artistRepository.save(artist);
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
 
-    const index = data.artists.findIndex((artist) => artist.id === id);
-    if (index === -1) throw new NotFoundException('Not found artist');
+    const artist = await this.artistRepository.findOne({
+      where: { id: id },
+    });
+    if (!artist) throw new NotFoundException('Not found artist');
 
     if (
       (updateArtistDto.name && typeof updateArtistDto.name !== 'string') ||
       (updateArtistDto.grammy && typeof updateArtistDto.grammy !== 'boolean')
     )
       throw new BadRequestException('Name or grammy invalid type');
-    const artist = data.artists.find((artist) => artist.id === id);
 
     const newArtistData = {
       ...artist,
@@ -67,28 +77,28 @@ export class ArtistsService {
       grammy: updateArtistDto.grammy,
     };
 
-    data.artists[index] = newArtistData;
+    this.artistRepository.save(newArtistData);
     return newArtistData;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.artists.findIndex((artist) => artist.id === id);
-    if (index === -1) throw new NotFoundException('Artists not found');
+    const artist = await this.artistRepository.findOne({ where: { id } });
+    if (!artist) throw new NotFoundException('Artists not found');
 
-    data.albums.forEach((album) => {
-      if (album.artistId === id) album.artistId = null;
-    });
+    // data.albums.forEach((album) => {
+    //   if (album.artistId === id) album.artistId = null;
+    // });
 
-    data.tracks.forEach((track) => {
-      if (track.artistId === id) track.artistId = null;
-    });
+    // data.tracks.forEach((track) => {
+    //   if (track.artistId === id) track.artistId = null;
+    // });
 
-    data.favorites.artists = data.favorites.artists.filter(
-      (artist) => artist.id !== id,
-    );
+    // data.favorites.artists = data.favorites.artists.filter(
+    //   (artist) => artist.id !== id,
+    // );
 
-    data.artists.splice(index, 1);
+    await this.artistRepository.delete(id);
     return;
   }
 }

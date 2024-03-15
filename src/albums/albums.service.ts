@@ -5,19 +5,29 @@ import {
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { data } from 'src/data/data';
+// import { data } from 'src/data/data';
 import { validate } from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Album } from './entities/album.entity';
+import { Repository } from 'typeorm';
+import { Artist } from 'src/artists/entities/artist.entity';
 
 @Injectable()
 export class AlbumsService {
-  findAll() {
-    return data.albums;
+  @InjectRepository(Album)
+  private albumRepository: Repository<Album>;
+  @InjectRepository(Artist)
+  private artistRepository: Repository<Artist>;
+
+  async findAll(): Promise<Album[]> {
+    const albums = await this.albumRepository.find();
+    return albums;
   }
 
-  findOne(id: string) {
+  async findOne(id: string): Promise<Album> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = data.albums.find((album) => album.id === id);
+    const album = await this.albumRepository.findOne({ where: { id } });
     if (!album) {
       throw new NotFoundException('Not found artist');
     }
@@ -40,14 +50,18 @@ export class AlbumsService {
       year: createAlbumDto.year,
       artistId: createAlbumDto.artistId || null,
     };
-    data.albums.push(newAlbumData);
+    this.albumRepository.save(
+      this.albumRepository.create({
+        ...newAlbumData,
+      }),
+    );
     return newAlbumData;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
+  async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.albums.findIndex((artist) => artist.id === id);
-    if (index === -1) throw new NotFoundException('Not found albums');
+    const album = await this.albumRepository.findOne({ where: { id } });
+    if (!album) throw new NotFoundException('Not found albums');
 
     if (!updateAlbumDto?.name && !updateAlbumDto?.year)
       throw new BadRequestException('You forgot to fill in name or year');
@@ -67,26 +81,25 @@ export class AlbumsService {
     }
 
     const updatedAlbum = {
-      ...data.albums[index],
+      ...album,
       ...updateAlbumDto,
     };
 
-    data.albums[index] = updatedAlbum;
-    return updatedAlbum;
+    return await this.albumRepository.save(updatedAlbum);
   }
 
-  remove(id: string) {
+  async remove(id: string): Promise<void> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.albums.findIndex((albums) => albums.id === id);
-    if (index === -1) throw new NotFoundException('Album not found');
+    const album = await this.albumRepository.findOne({ where: { id } });
+    if (!album) throw new NotFoundException('Album not found');
 
-    data.tracks.forEach((track) => {
-      if (track.albumId === id) track.albumId = null;
-    });
+    // data.tracks.forEach((track) => {
+    //   if (track.albumId === id) track.albumId = null;
+    // });
 
-    data.favorites.albums = data.albums.filter((album) => album.id !== id);
+    // data.favorites.albums = data.albums.filter((album) => album.id !== id);
 
-    data.albums.splice(index, 1);
+    await this.albumRepository.delete(id);
 
     return;
   }

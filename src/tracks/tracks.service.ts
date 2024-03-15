@@ -8,23 +8,38 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 import { data } from 'src/data/data';
 import { validate } from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Track } from './entities/track.entity';
+import { Repository } from 'typeorm';
+import { Artist } from 'src/artists/entities/artist.entity';
+import { Album } from 'src/albums/entities/album.entity';
 
 @Injectable()
 export class TracksService {
-  findAll() {
-    return data.tracks;
+  @InjectRepository(Track)
+  private trackRepository: Repository<Track>;
+  @InjectRepository(Artist)
+  private artistRepository: Repository<Artist>;
+  @InjectRepository(Album)
+  private albumRepository: Repository<Album>;
+
+  async findAll(): Promise<Track[]> {
+    const tracks = await this.trackRepository.find();
+    return tracks;
   }
 
-  findOne(id: string) {
+  async findOne(id: string): Promise<Track> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const track = data.tracks.find((track) => track.id === id);
+    const track = await this.trackRepository.findOne({
+      where: { id: id },
+    });
     if (!track) {
       throw new NotFoundException('Not found track');
     }
     return track;
   }
 
-  create(createTrackDto: CreateTrackDto) {
+  async create(createTrackDto: CreateTrackDto) {
     if (!(createTrackDto?.name && createTrackDto?.duration)) {
       throw new BadRequestException('You forgot to fill in name or duration');
     }
@@ -45,14 +60,32 @@ export class TracksService {
       albumId: createTrackDto?.albumId,
     };
 
-    data.tracks.push(newTrackData);
+    const artist = await this.artistRepository.findOne({
+      where: { id: createTrackDto.artistId },
+    });
+
+    const album = await this.albumRepository.findOne({
+      where: { id: createTrackDto.albumId },
+    });
+
+    if (!artist || !album) {
+      throw new BadRequestException('No such artist or album');
+    }
+
+    this.trackRepository.save(
+      this.trackRepository.create({
+        ...newTrackData,
+      }),
+    );
     return newTrackData;
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.tracks.findIndex((track) => track.id === id);
-    if (index === -1) throw new NotFoundException('Not found track');
+    const track = await this.trackRepository.findOne({
+      where: { id: id },
+    });
+    if (!track) throw new NotFoundException('Not found track');
 
     if (
       !updateTrackDto.name &&
@@ -83,26 +116,25 @@ export class TracksService {
       throw new BadRequestException('AlbumId not string type');
     }
 
-    const track = data.tracks.find((track) => track.id === id);
     const newTrackData = {
       ...track,
       ...updateTrackDto,
     };
 
-    data.tracks[index] = newTrackData;
+    this.trackRepository.save(newTrackData);
     return newTrackData;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.tracks.findIndex((track) => track.id === id);
-    if (index === -1) throw new NotFoundException('Tracks not found');
+    const track = await this.trackRepository.findOne({ where: { id } });
+    if (!track) throw new NotFoundException('Tracks not found');
 
-    data.favorites.tracks = data.favorites.tracks.filter(
-      (artist) => artist.id !== id,
-    );
+    // data.favorites.tracks = data.favorites.tracks.filter(
+    //   (artist) => artist.id !== id,
+    // );
 
-    data.tracks.splice(index, 1);
+    await this.trackRepository.delete(id);
     return;
   }
 }

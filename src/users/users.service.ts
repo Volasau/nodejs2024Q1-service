@@ -17,6 +17,7 @@ import { User } from './entities/user.entity';
 export class UsersService {
   @InjectRepository(User)
   private userRepository: Repository<User>;
+
   async findAll(): Promise<User[]> {
     const users = await this.userRepository.find();
     return users;

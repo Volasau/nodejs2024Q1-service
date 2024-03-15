@@ -9,29 +9,35 @@ import { UpdatePasswordDto } from './dto/update-user.dto';
 import { data } from 'src/data/data';
 import { v4 as uuidv4 } from 'uuid';
 import { validate } from 'uuid';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  findAll() {
-    return data.users.map((user) => {
-      const userCopy = { ...user };
-      delete userCopy.password;
-      return userCopy;
-    });
+  @InjectRepository(User)
+  private userRepository: Repository<User>;
+  async findAll(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    return users;
   }
 
-  findOne(id: string) {
+  async findOne(id: string): Promise<User> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const user = data.users.find((user) => user.id === id);
+    const user = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
     if (!user) {
       throw new NotFoundException('Not found user');
     }
     const copyUser = user;
-    delete copyUser.password;
+    // delete copyUser.password;
     return copyUser;
   }
 
-  create(userDto: CreateUserDto) {
+  async create(userDto: CreateUserDto): Promise<User> {
     if (!userDto.login || !userDto.password)
       throw new BadRequestException(
         'You forgot to fill in your username or password',
@@ -50,13 +56,13 @@ export class UsersService {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    data.users.push(user);
-    const result = { ...user };
-    delete result.password;
-    return result;
+    const result = this.userRepository.create(user);
+    await this.userRepository.save(result);
+
+    return new User(result);
   }
 
-  update(id: string, updateUserDto: UpdatePasswordDto) {
+  async update(id: string, updateUserDto: UpdatePasswordDto): Promise<User> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
 
     if (
@@ -79,20 +85,17 @@ export class UsersService {
       updatedAt: Date.now(),
       version: newVersion,
     };
-
-    data.users[index] = newUserData;
-    const result = { ...newUserData };
-
-    delete result.password;
-    return result;
+    await this.userRepository.save(newUserData);
+    const newUser = await this.userRepository.findOne({ where: { id } });
+    return new User(newUser);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const index = data.users.findIndex((user) => user.id === id);
-    if (index === -1) throw new NotFoundException('User not found');
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
 
-    data.users.splice(index, 1);
+    await this.userRepository.delete(id);
     return;
   }
 }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
-import { data } from 'src/data/data';
+// import { data } from 'src/data/data';
 import { v4 as uuidv4 } from 'uuid';
 import { validate } from 'uuid';
 import { Repository } from 'typeorm';
@@ -15,15 +15,17 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  @InjectRepository(User)
-  private userRepository: Repository<User>;
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
-  async findAll(): Promise<User[]> {
+  public async findAll(): Promise<User[]> {
     const users = await this.userRepository.find();
     return users;
   }
 
-  async findOne(id: string): Promise<User> {
+  public async findOne(id: string): Promise<User> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const user = await this.userRepository.findOne({
       where: {
@@ -33,9 +35,8 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Not found user');
     }
-    const copyUser = user;
-    // delete copyUser.password;
-    return copyUser;
+
+    return user;
   }
 
   async create(userDto: CreateUserDto): Promise<User> {
@@ -49,18 +50,13 @@ export class UsersService {
     ) {
       throw new BadRequestException('Login or password not string');
     }
-    const user = {
-      id: uuidv4(),
-      login: userDto.login,
-      password: userDto.password,
+    const newUser = {
+      ...userDto,
       version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     };
-    const result = this.userRepository.create(user);
-    await this.userRepository.save(result);
-
-    return new User(result);
+    const resultUser = this.userRepository.create(newUser);
+    await this.userRepository.save(resultUser);
+    return new User(resultUser);
   }
 
   async update(id: string, updateUserDto: UpdatePasswordDto): Promise<User> {
@@ -73,9 +69,11 @@ export class UsersService {
     ) {
       throw new BadRequestException('oldPassword or newPassword not string');
     }
-    const index = data.users.findIndex((user) => user.id === id);
-    if (index === -1) throw new NotFoundException('User not found');
-    const user = data.users.find((user) => user.id === id);
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
     if (updateUserDto.oldPassword !== user.password) {
       throw new ForbiddenException('Password does not  match');
     }

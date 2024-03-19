@@ -6,8 +6,6 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
-// import { data } from 'src/data/data';
-import { v4 as uuidv4 } from 'uuid';
 import { validate } from 'uuid';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';

@@ -11,18 +11,18 @@ import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from './entities/artist.entity';
 import { Repository } from 'typeorm';
+import { ArtistRepository } from './artist-repository';
 
 @Injectable()
 export class ArtistsService {
-  @InjectRepository(Artist)
-  private artistRepository: Repository<Artist>;
+  constructor(private artistRepository: ArtistRepository) {}
 
-  async findAll(): Promise<Artist[]> {
+  public async findAll(): Promise<Artist[]> {
     const artists = await this.artistRepository.find();
     return artists;
   }
 
-  async findOne(id: string): Promise<Artist> {
+  public async findOne(id: string): Promise<Artist> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const artist = await this.artistRepository.findOne({
       where: { id: id },
@@ -33,7 +33,7 @@ export class ArtistsService {
     return artist;
   }
 
-  async create(createArtistDto: CreateArtistDto): Promise<Artist> {
+  public async create(createArtistDto: CreateArtistDto): Promise<Artist> {
     if (!createArtistDto.name || !createArtistDto.grammy) {
       throw new BadRequestException(
         'You forgot to fill in your name or grammy',
@@ -47,17 +47,18 @@ export class ArtistsService {
       throw new BadRequestException('Name or grammy invalid type');
     }
 
-    const artist = {
-      id: uuidv4(),
-      name: createArtistDto.name,
-      grammy: createArtistDto.grammy,
-    };
-
-    await this.artistRepository.save(artist);
-    return artist;
+    // const artist = {
+    //   id: uuidv4(),
+    //   name: createArtistDto.name,
+    //   grammy: createArtistDto.grammy,
+    // };
+    return await this.artistRepository.save(createArtistDto);
   }
 
-  async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
+  public async update(
+    id: string,
+    updateArtistDto: UpdateArtistDto,
+  ): Promise<Artist> {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
 
     const artist = await this.artistRepository.findOne({
@@ -71,17 +72,13 @@ export class ArtistsService {
     )
       throw new BadRequestException('Name or grammy invalid type');
 
-    const newArtistData = {
+    return await this.artistRepository.save({
       ...artist,
-      name: updateArtistDto.name,
-      grammy: updateArtistDto.grammy,
-    };
-
-    this.artistRepository.save(newArtistData);
-    return newArtistData;
+      ...updateArtistDto,
+    });
   }
 
-  async remove(id: string) {
+  public async remove(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const artist = await this.artistRepository.findOne({ where: { id } });
     if (!artist) throw new NotFoundException('Artists not found');

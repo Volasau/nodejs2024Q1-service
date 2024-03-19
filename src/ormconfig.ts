@@ -4,11 +4,12 @@ dotenv.config();
 
 export default {
   type: 'postgres',
-  host: process.env.POSTGRES_HOST as string,
-  port: parseInt(process.env.POSTGRES_PORT) as number,
-  username: process.env.POSTGRES_USER as string,
-  password: process.env.POSTGRES_PASSWORD as string,
-  database: process.env.POSTGRES_DB as string,
+  host: process.env.PG_HOST as string,
+  port: parseInt(process.env.PG_PORT) as number,
+  username: process.env.PG_USER as string,
+  password: process.env.PG_PASSWORD as string,
+  database: process.env.PG_DB as string,
   entities: ['dist/**/*.entity.js'],
   synchronize: true,
+  logging: false,
 } as DataSourceOptions;

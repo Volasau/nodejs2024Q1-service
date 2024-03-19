@@ -79,47 +79,33 @@ export class TracksService {
 
   async update(id: string, updateTrackDto: UpdateTrackDto) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const track = await this.trackRepository.findOne({
-      where: { id: id },
-    });
+
+    const track = await this.trackRepository.findOne({ where: { id } });
     if (!track) throw new NotFoundException('Not found track');
 
-    if (
-      !updateTrackDto.name &&
-      !updateTrackDto.duration &&
-      !updateTrackDto.artistId &&
-      !updateTrackDto.albumId &&
-      updateTrackDto.name &&
-      typeof updateTrackDto.name !== 'string'
-    ) {
-      throw new BadRequestException('Name not string type');
+    const { name, duration, artistId, albumId } = updateTrackDto;
+
+    if (name !== undefined && typeof name !== 'string') {
+      throw new BadRequestException('Name must be a string');
     }
 
-    if (
-      updateTrackDto.duration &&
-      typeof updateTrackDto.duration !== 'number'
-    ) {
-      throw new BadRequestException('Duration not number type');
+    if (duration !== undefined && typeof duration !== 'number') {
+      throw new BadRequestException('Duration must be a number');
     }
 
-    if (
-      updateTrackDto.artistId &&
-      typeof updateTrackDto.artistId !== 'string'
-    ) {
-      throw new BadRequestException('ArtistId not string type');
+    if (artistId !== undefined && typeof artistId !== 'string') {
+      throw new BadRequestException('ArtistId must be a string');
     }
 
-    if (updateTrackDto.albumId && typeof updateTrackDto.albumId !== 'string') {
-      throw new BadRequestException('AlbumId not string type');
+    if (albumId !== undefined && typeof albumId !== 'string') {
+      throw new BadRequestException('AlbumId must be a string');
     }
 
-    const newTrackData = {
-      ...track,
-      ...updateTrackDto,
-    };
+    Object.assign(track, updateTrackDto);
 
-    this.trackRepository.save(newTrackData);
-    return newTrackData;
+    await this.trackRepository.save(track);
+
+    return track;
   }
 
   async remove(id: string) {

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { data } from 'src/data/data';
+// import { data } from 'src/data/data';
 import { validate } from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,15 +13,17 @@ import { Track } from './entities/track.entity';
 import { Repository } from 'typeorm';
 import { Artist } from 'src/artists/entities/artist.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { TrackRepository } from './track-repository';
+import { ArtistRepository } from 'src/artists/artist-repository';
+import { AlbumRepository } from 'src/albums/album-repository';
 
 @Injectable()
 export class TracksService {
-  @InjectRepository(Track)
-  private trackRepository: Repository<Track>;
-  @InjectRepository(Artist)
-  private artistRepository: Repository<Artist>;
-  @InjectRepository(Album)
-  private albumRepository: Repository<Album>;
+  constructor(
+    private trackRepository: TrackRepository,
+    private artistRepository: ArtistRepository,
+    private albumRepository: AlbumRepository,
+  ) {}
 
   async findAll(): Promise<Track[]> {
     const tracks = await this.trackRepository.find();

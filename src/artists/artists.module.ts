@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ArtistsService } from './artists.service';
-import { ArtistsController } from './artists.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Artist } from './entities/artist.entity';
-import { ArtistRepository } from './artist-repository';
+import { ArtistEntity } from '../helpers';
+import { ArtistsController } from './artists.controller';
+import { ArtistsService } from './artists.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Artist])],
+  imports: [TypeOrmModule.forFeature([ArtistEntity])],
   controllers: [ArtistsController],
-  providers: [ArtistsService, ArtistRepository],
-  exports: [ArtistRepository],
+  providers: [ArtistsService],
+  exports: [TypeOrmModule],
 })
 export class ArtistsModule {}

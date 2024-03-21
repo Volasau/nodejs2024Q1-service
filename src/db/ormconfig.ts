@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { DataSourceOptions } from 'typeorm';
+import { entities } from '../helpers';
 
 export const database: DataSourceOptions = {
   type: 'postgres',
@@ -8,7 +9,7 @@ export const database: DataSourceOptions = {
   username: process.env.PG_USER as string,
   password: process.env.PG_PASSWORD as string,
   database: process.env.PG_DB as string,
-  entities: ['dist/**/*.entity.js'],
+  entities,
   migrations: [''],
   logging: true,
   migrationsRun: true,

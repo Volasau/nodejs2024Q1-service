@@ -1,4 +1,3 @@
-import { Artist } from '../../artists/entities/artist.entity';
 import {
   Column,
   Entity,
@@ -6,28 +5,46 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { IsString, IsUUID, IsInt } from 'class-validator';
+import { FavoritesEntity } from '../../favorites/entities/favorites.entity';
+import { ArtistEntity } from '../../artists/entities/artist.entity';
 
 @Entity('album')
-export class Album {
-  constructor(partial: Partial<Album>) {
-    Object.assign(this, partial);
-  }
-
+export class AlbumEntity {
   @PrimaryGeneratedColumn('uuid')
+  @IsUUID()
   id: string;
 
   @Column()
+  @IsString()
   name: string;
 
   @Column()
+  @IsInt()
   year: number;
 
-  @ManyToOne(() => Artist, (artist) => artist.id, {
+  @Column({
+    default: null,
+    nullable: true,
+  })
+  @IsUUID()
+  artistId: string | null;
+
+  @Exclude()
+  @ManyToOne(() => ArtistEntity, {
     onDelete: 'SET NULL',
   })
   @JoinColumn()
-  artist: Artist | null;
+  artist: ArtistEntity;
 
-  @Column({ nullable: true })
-  artistId: string | null;
+  @Exclude()
+  @ManyToOne(
+    () => FavoritesEntity,
+    (favorites: FavoritesEntity) => favorites.albums,
+    {
+      onDelete: 'SET NULL',
+    },
+  )
+  favorites: FavoritesEntity;
 }

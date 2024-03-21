@@ -1,35 +1,62 @@
-import { Album } from 'src/albums/entities/album.entity';
-import { Artist } from 'src/artists/entities/artist.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { IsString, IsUUID, IsInt } from 'class-validator';
+import { ArtistEntity } from '../../artists/entities/artist.entity';
+import { AlbumEntity } from '../../albums/entities/album.entity';
+import { FavoritesEntity } from '../../favorites/entities/favorites.entity';
 
-@Entity()
-export class Track {
-  constructor(partial: Partial<Track>) {
-    Object.assign(this, partial);
-  }
-
+@Entity('track')
+export class TrackEntity {
   @PrimaryGeneratedColumn('uuid')
+  @IsUUID()
   id: string;
 
   @Column()
+  @IsString()
   name: string;
 
-  @ManyToOne(() => Artist, (artist) => artist.id, {
-    onDelete: 'SET NULL',
+  @Column({
+    default: null,
+    nullable: true,
   })
-  artist: Artist | null;
-
-  @Column({ nullable: true })
+  @IsUUID()
   artistId: string | null;
 
-  @ManyToOne(() => Album, (album) => album.id, {
+  @Exclude()
+  @ManyToOne(() => ArtistEntity, {
     onDelete: 'SET NULL',
   })
-  album: Album | null;
+  @JoinColumn()
+  artist: ArtistEntity;
 
-  @Column({ nullable: true })
+  @Column({
+    default: null,
+    nullable: true,
+  })
+  @IsUUID()
   albumId: string | null;
 
+  @Exclude()
+  @ManyToOne(() => AlbumEntity, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn()
+  album: AlbumEntity;
+
   @Column()
+  @IsInt()
   duration: number;
+
+  @Exclude()
+  @ManyToOne(
+    () => FavoritesEntity,
+    (favorites: FavoritesEntity) => favorites.tracks,
+  )
+  favorites: FavoritesEntity;
 }

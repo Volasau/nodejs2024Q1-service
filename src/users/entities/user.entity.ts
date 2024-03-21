@@ -4,33 +4,41 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 import { Exclude, Transform } from 'class-transformer';
+import { IsString, IsUUID, IsInt } from 'class-validator';
 
 @Entity('user')
-export class User {
+export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
+  @IsUUID()
   id: string;
 
   @Column()
+  @IsString()
   login: string;
 
-  @Column()
   @Exclude()
+  @Column()
+  @IsString()
   password: string;
 
-  @Column()
+  @VersionColumn()
+  @IsInt()
   version: number;
 
+  @Transform(({ value }) => UserEntity.dateToTimestamp(value))
   @CreateDateColumn()
-  @Transform(({ value }) => value.getTime())
-  createdAt: Date;
+  @IsInt()
+  createdAt: number;
 
+  @Transform(({ value }) => UserEntity.dateToTimestamp(value))
   @UpdateDateColumn()
-  @Transform(({ value }) => value.getTime())
-  updatedAt: Date;
+  @IsInt()
+  updatedAt: number;
 
-  constructor(partial: Partial<User>) {
-    Object.assign(this, partial);
+  static dateToTimestamp(value: Date): number {
+    return new Date(value).getTime();
   }
 }

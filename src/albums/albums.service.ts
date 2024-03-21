@@ -1,85 +1,82 @@
 import {
-  BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AlbumEntity, ArtistEntity } from '../helpers';
+import { ArtistsService } from '../artists/artists.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-// import { data } from 'src/data/data';
-import { validate } from 'uuid';
-import { v4 as uuidv4 } from 'uuid';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Album } from './entities/album.entity';
-import { Repository } from 'typeorm';
-import { Artist } from 'src/artists/entities/artist.entity';
-import { AlbumRepository } from './album-repository';
-import { ArtistRepository } from 'src/artists/artist-repository';
 
 @Injectable()
 export class AlbumsService {
   constructor(
-    private albumRepository: AlbumRepository,
-    private artistRepository: ArtistRepository,
+    @InjectRepository(AlbumEntity)
+    private readonly albumRepository: Repository<AlbumEntity>,
+    @Inject(forwardRef(() => ArtistsService))
+    private readonly artistService: ArtistsService,
   ) {}
 
-  public async findAll(): Promise<Album[]> {
-    return this.albumRepository.find();
+  async findAll(): Promise<AlbumEntity[]> {
+    return await this.albumRepository.find();
   }
 
-  public async findOne(id: string): Promise<Album> {
-    const album = await this.albumRepository.findOne({ where: { id } });
-    if (!album) throw new NotFoundException('Album', id);
+  async findOneId(id: string, isFavorites = false): Promise<AlbumEntity> {
+    const album: AlbumEntity = await this.albumRepository.findOneBy({ id });
+
+    if (!album) {
+      const Exception = isFavorites
+        ? UnprocessableEntityException
+        : NotFoundException;
+
+      throw new Exception('Incorrect data format');
+    }
+
     return album;
   }
 
-  public async create(createAlbumDto: CreateAlbumDto) {
-    const { name, year, artistId } = createAlbumDto;
-    const artist = artistId
-      ? await this.artistRepository.findOne({
-          where: { id: artistId },
-        })
+  async create({ name, year, artistId }: CreateAlbumDto): Promise<AlbumEntity> {
+    const artist: ArtistEntity = artistId
+      ? await this.artistService.findOneId(artistId)
       : null;
-    const albumToCreate = new Album({ name, year, artist });
-    return await this.albumRepository.save(albumToCreate);
+    const newAlbum: AlbumEntity = this.albumRepository.create({
+      name,
+      year,
+      artist,
+    });
+
+    return await this.albumRepository.save(newAlbum);
   }
 
-  async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
-    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = await this.albumRepository.findOne({ where: { id } });
-    if (!album) throw new NotFoundException('Not found albums');
+  async update(
+    id: string,
+    { name, year, artistId }: UpdateAlbumDto,
+  ): Promise<AlbumEntity> {
+    const album: AlbumEntity = await this.findOneId(id);
 
-    if (!updateAlbumDto?.name && !updateAlbumDto?.year)
-      throw new BadRequestException('You forgot to fill in name or year');
-
-    if (updateAlbumDto.name && typeof updateAlbumDto.name !== 'string') {
-      throw new BadRequestException('Name should be a string');
+    if (name) {
+      album.name = name;
     }
 
-    if (updateAlbumDto.year && typeof updateAlbumDto.year !== 'number') {
-      throw new BadRequestException('Year should be a number');
-    }
-    if (
-      updateAlbumDto.artistId &&
-      typeof updateAlbumDto.artistId !== 'string'
-    ) {
-      throw new BadRequestException('ArtistId should be a string');
+    if (year) {
+      album.year = year;
     }
 
-    const updatedAlbum = {
-      ...album,
-      ...updateAlbumDto,
-    } as Album;
+    if (artistId) {
+      album.artist = artistId
+        ? await this.artistService.findOneId(artistId)
+        : null;
+    }
 
-    return await this.albumRepository.save(updatedAlbum);
+    return await this.albumRepository.save(album);
   }
 
-  async remove(id: string): Promise<void> {
-    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = await this.albumRepository.findOne({ where: { id } });
-    if (!album) throw new NotFoundException('Album not found');
-
-    await this.albumRepository.delete(id);
-
-    return;
+  async removeAlbum(id: string): Promise<void> {
+    const album: AlbumEntity = await this.findOneId(id);
+    await this.albumRepository.remove(album);
   }
 }

@@ -9,10 +9,10 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { TrackEntity } from '../helpers';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TracksService } from './tracks.service';
+import { TrackEntity } from './entities/track.entity';
 
 @Controller('track')
 export class TracksController {

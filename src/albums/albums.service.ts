@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AlbumEntity, ArtistEntity } from '../helpers';
 import { ArtistsService } from '../artists/artists.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
+import { AlbumEntity } from './entities/album.entity';
+import { ArtistEntity } from 'src/artists/entities/artist.entity';
 
 @Injectable()
 export class AlbumsService {

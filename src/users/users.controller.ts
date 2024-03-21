@@ -11,10 +11,10 @@ import {
   Put,
   UseInterceptors,
 } from '@nestjs/common';
-import { UserEntity } from '../helpers';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Controller('user')
 export class UsersController {

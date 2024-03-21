@@ -6,15 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  FavoritesEntity,
-  TrackEntity,
-  ArtistEntity,
-  AlbumEntity,
-} from '../helpers';
+
 import { AlbumsService } from 'src/albums/albums.service';
 import { ArtistsService } from 'src/artists/artists.service';
 import { TracksService } from 'src/tracks/tracks.service';
+import { FavoritesEntity } from './entities/favorites.entity';
+import { TrackEntity } from 'src/tracks/entities/track.entity';
+import { ArtistEntity } from 'src/artists/entities/artist.entity';
+import { AlbumEntity } from 'src/albums/entities/album.entity';
 
 @Injectable()
 export class FavoritesService {

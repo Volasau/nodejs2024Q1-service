@@ -19,7 +19,7 @@ services:
     depends_on:
       - db
     volumes:
-      - .:/user/app
+      - ./src:/app/src
     networks:
       - user-defined
   db:

@@ -16,9 +16,7 @@ async function bootstrap() {
   const docSchema = YAML.parse(fileSchema);
   SwaggerModule.setup('doc', app, docSchema);
 
-  app.useGlobalPipes(
-    new ValidationPipe({ transform: true, forbidUnknownValues: true }),
-  );
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(PORTnest);
 }

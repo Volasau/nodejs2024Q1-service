@@ -1,13 +1,13 @@
 import {
-  Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
 import { Exclude, Transform } from 'class-transformer';
-import { IsString, IsUUID, IsInt } from 'class-validator';
+import { IsString, IsUUID, IsInt, IsDate } from 'class-validator';
 
 @Entity('user')
 export class UserEntity {
@@ -28,17 +28,17 @@ export class UserEntity {
   @IsInt()
   version: number;
 
-  @Transform(({ value }) => UserEntity.dateToTimestamp(value))
+  @Transform(({ value }) => UserEntity.convertDate(value))
   @CreateDateColumn()
-  @IsInt()
-  createdAt: number;
+  @IsDate()
+  createdAt: Date;
 
-  @Transform(({ value }) => UserEntity.dateToTimestamp(value))
+  @Transform(({ value }) => UserEntity.convertDate(value))
   @UpdateDateColumn()
-  @IsInt()
-  updatedAt: number;
+  @IsDate()
+  updatedAt: Date;
 
-  static dateToTimestamp(value: Date): number {
+  static convertDate(value: Date): number {
     return new Date(value).getTime();
   }
 }

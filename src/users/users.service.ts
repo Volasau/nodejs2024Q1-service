@@ -16,12 +16,12 @@ export class UsersService {
     private readonly usersRepository: Repository<UserEntity>,
   ) {}
 
-  async findAll(): Promise<UserEntity[]> {
+  async findAll() {
     return await this.usersRepository.find();
   }
 
-  async findOneId(id: string): Promise<UserEntity> {
-    const user: UserEntity = await this.usersRepository.findOneBy({ id });
+  async findOneId(id: string) {
+    const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -29,14 +29,14 @@ export class UsersService {
     return user;
   }
 
-  async create(userDto: CreateUserDto): Promise<UserEntity> {
-    const newUser: UserEntity = this.usersRepository.create(userDto);
+  async create(userDto: CreateUserDto) {
+    const newUser = this.usersRepository.create(userDto);
 
     return await this.usersRepository.save(newUser);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserEntity> {
-    const user: UserEntity = await this.usersRepository.findOneBy({ id });
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -49,8 +49,8 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
-  async removeUser(id: string): Promise<void> {
-    const user: UserEntity = await this.usersRepository.findOneBy({ id });
+  async removeUser(id: string) {
+    const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }

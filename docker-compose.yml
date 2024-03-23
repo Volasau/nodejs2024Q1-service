@@ -5,11 +5,10 @@ services:
     container_name: myapp
     build:
       context: .
-      target: development
-    restart: unless-stopped
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - ${PORT}:${PORT}
-    command: npm run start:dev
     environment:
       DB_TYPE: ${PG_DB_TYPE}
       PG_HOST: ${PG_HOST}
@@ -25,9 +24,10 @@ services:
       - user-defined
   db:
     container_name: mydb
-    image: postgres:latest
-    build: postgres
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile
+    restart: always
     ports:
       - ${PG_PORT}:${PG_PORT}
     environment:

@@ -23,6 +23,14 @@ Make sure you have Docker installed and running.
 
 #### start application:
 
+build a project
+
+```
+docker compose build
+```
+
+start a project
+
 ```
 docker compose up -d
 ```

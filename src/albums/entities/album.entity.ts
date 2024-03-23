@@ -35,7 +35,7 @@ export class AlbumEntity {
   @ManyToOne(() => ArtistEntity, {
     onDelete: 'SET NULL',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'artistId' })
   artist: ArtistEntity;
 
   @Exclude()

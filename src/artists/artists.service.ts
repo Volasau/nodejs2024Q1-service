@@ -16,53 +16,48 @@ export class ArtistsService {
     private readonly artistRepository: Repository<ArtistEntity>,
   ) {}
 
-  async findAll(): Promise<ArtistEntity[]> {
+  async findAll() {
     return await this.artistRepository.find();
   }
 
-  async findOneId(id: string, isFavorites = false): Promise<ArtistEntity> {
-    const artist: ArtistEntity = await this.artistRepository.findOneBy({ id });
+  async findOneId(id: string, isFavorites = false) {
+    const artist = await this.artistRepository.findOneBy({ id });
 
     if (!artist) {
-      const Exception = isFavorites
-        ? UnprocessableEntityException
-        : NotFoundException;
-
-      throw new Exception('Incorrect data format');
+      if (isFavorites) {
+        throw new UnprocessableEntityException('Incorrect data format');
+      } else {
+        throw new NotFoundException('Not found ');
+      }
     }
 
     return artist;
   }
 
-  async createArtist(artist: CreateArtistDto): Promise<ArtistEntity> {
-    const newArtist: ArtistEntity = this.artistRepository.create(artist);
+  async createArtist(artist: CreateArtistDto) {
+    const newArtist = this.artistRepository.create(artist);
 
     return await this.artistRepository.save(newArtist);
   }
 
-  async updateArtist(
-    id: string,
-    { name, grammy }: UpdateArtistDto,
-  ): Promise<ArtistEntity> {
-    const artist: ArtistEntity = await this.artistRepository.findOneBy({ id });
+  async updateArtist(id: string, UpdateArtistDto: UpdateArtistDto) {
+    const artist = await this.artistRepository.findOneBy({ id });
 
     if (!artist) {
       throw new NotFoundException('Not found artist');
     }
 
-    if (name) {
-      artist.name = name;
-    }
-
-    if (grammy !== undefined) {
-      artist.grammy = grammy;
-    }
+    artist.name = UpdateArtistDto.name ? UpdateArtistDto.name : artist.name;
+    artist.grammy =
+      UpdateArtistDto.grammy !== undefined
+        ? UpdateArtistDto.grammy
+        : artist.grammy;
 
     return await this.artistRepository.save(artist);
   }
 
-  async removeArtist(id: string): Promise<void> {
-    const artist: ArtistEntity = await this.findOneId(id);
+  async removeArtist(id: string) {
+    const artist = await this.findOneId(id);
     await this.artistRepository.remove(artist);
   }
 }

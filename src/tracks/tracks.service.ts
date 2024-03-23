@@ -24,38 +24,39 @@ export class TracksService {
     private readonly artistService: ArtistsService,
   ) {}
 
-  async findAll(): Promise<TrackEntity[]> {
+  async findAll() {
     return await this.trackRepository.find();
   }
 
-  async findOneId(id: string, isFavorites = false): Promise<TrackEntity> {
-    const track: TrackEntity = await this.trackRepository.findOneBy({ id });
+  async findOneId(id: string, isFavorites = false) {
+    const track = await this.trackRepository.findOneBy({ id });
 
     if (!track) {
-      const Exception = isFavorites
-        ? UnprocessableEntityException
-        : NotFoundException;
-
-      throw new Exception('Incorrect data format');
+      if (isFavorites) {
+        throw new UnprocessableEntityException('Incorrect data format');
+      } else {
+        throw new NotFoundException('Track not found');
+      }
     }
 
     return track;
   }
 
-  async createTrack({
-    name,
-    duration,
-    artistId,
-    albumId,
-  }: CreateTrackDto): Promise<TrackEntity> {
-    const [artist, album] = await Promise.all([
-      artistId ? this.artistService.findOneId(artistId) : Promise.resolve(null),
-      albumId ? this.albumService.findOneId(albumId) : Promise.resolve(null),
-    ]);
+  async createTrack(CreateTrackDto: CreateTrackDto) {
+    let artist = null;
+    let album = null;
 
-    const newTrack: TrackEntity = this.trackRepository.create({
-      name,
-      duration,
+    if (CreateTrackDto.artistId) {
+      artist = await this.artistService.findOneId(CreateTrackDto.artistId);
+    }
+
+    if (CreateTrackDto.albumId) {
+      album = await this.albumService.findOneId(CreateTrackDto.albumId);
+    }
+
+    const newTrack = this.trackRepository.create({
+      name: CreateTrackDto.name,
+      duration: CreateTrackDto.duration,
       artist,
       album,
     });
@@ -63,28 +64,24 @@ export class TracksService {
     return await this.trackRepository.save(newTrack);
   }
 
-  async updateTrack(
-    id: string,
-    { name, duration, artistId, albumId }: UpdateTrackDto,
-  ): Promise<TrackEntity> {
-    const track: TrackEntity = await this.findOneId(id);
+  async updateTrack(id: string, UpdateTrackDto: UpdateTrackDto) {
+    const track = await this.findOneId(id);
 
-    track.name = name ?? track.name;
-    track.duration = duration ?? track.duration;
+    track.name = UpdateTrackDto.name ?? track.name;
+    track.duration = UpdateTrackDto.duration ?? track.duration;
 
-    if (artistId) {
-      track.artist = await this.artistService.findOneId(artistId);
-    }
-
-    if (albumId) {
-      track.album = await this.albumService.findOneId(albumId);
-    }
+    track.artist = UpdateTrackDto.artistId
+      ? await this.artistService.findOneId(UpdateTrackDto.artistId)
+      : track.artist;
+    track.album = UpdateTrackDto.albumId
+      ? await this.albumService.findOneId(UpdateTrackDto.albumId)
+      : track.album;
 
     return await this.trackRepository.save(track);
   }
 
-  async removeTrack(id: string): Promise<void> {
-    const track: TrackEntity = await this.findOneId(id);
+  async removeTrack(id: string) {
+    const track = await this.findOneId(id);
     await this.trackRepository.remove(track);
   }
 }

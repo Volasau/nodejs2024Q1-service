@@ -11,7 +11,6 @@ import { ArtistsService } from '../artists/artists.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
-import { ArtistEntity } from 'src/artists/entities/artist.entity';
 
 @Injectable()
 export class AlbumsService {
@@ -22,62 +21,51 @@ export class AlbumsService {
     private readonly artistService: ArtistsService,
   ) {}
 
-  async findAll(): Promise<AlbumEntity[]> {
+  async findAll() {
     return await this.albumRepository.find();
   }
 
-  async findOneId(id: string, isFavorites = false): Promise<AlbumEntity> {
-    const album: AlbumEntity = await this.albumRepository.findOneBy({ id });
+  async findOneId(id: string, isFavorites = false) {
+    const album = await this.albumRepository.findOneBy({ id });
 
     if (!album) {
-      const Exception = isFavorites
-        ? UnprocessableEntityException
-        : NotFoundException;
-
-      throw new Exception('Incorrect data format');
+      if (isFavorites) {
+        throw new UnprocessableEntityException('Incorrect data format');
+      } else {
+        throw new NotFoundException('Album not found');
+      }
     }
 
     return album;
   }
 
-  async create({ name, year, artistId }: CreateAlbumDto): Promise<AlbumEntity> {
-    const artist: ArtistEntity = artistId
-      ? await this.artistService.findOneId(artistId)
+  async create(CreateAlbumDto: CreateAlbumDto) {
+    const artist = CreateAlbumDto.artistId
+      ? await this.artistService.findOneId(CreateAlbumDto.artistId)
       : null;
-    const newAlbum: AlbumEntity = this.albumRepository.create({
-      name,
-      year,
+    const newAlbum = this.albumRepository.create({
+      name: CreateAlbumDto.name,
+      year: CreateAlbumDto.year,
       artist,
     });
 
     return await this.albumRepository.save(newAlbum);
   }
 
-  async update(
-    id: string,
-    { name, year, artistId }: UpdateAlbumDto,
-  ): Promise<AlbumEntity> {
-    const album: AlbumEntity = await this.findOneId(id);
+  async update(id: string, UpdateAlbumDto: UpdateAlbumDto) {
+    const album = await this.findOneId(id);
 
-    if (name) {
-      album.name = name;
-    }
-
-    if (year) {
-      album.year = year;
-    }
-
-    if (artistId) {
-      album.artist = artistId
-        ? await this.artistService.findOneId(artistId)
-        : null;
-    }
+    album.name = UpdateAlbumDto.name ? UpdateAlbumDto.name : album.name;
+    album.year = UpdateAlbumDto.year ? UpdateAlbumDto.year : album.year;
+    album.artist = UpdateAlbumDto.artistId
+      ? await this.artistService.findOneId(UpdateAlbumDto.artistId)
+      : null;
 
     return await this.albumRepository.save(album);
   }
 
-  async removeAlbum(id: string): Promise<void> {
-    const album: AlbumEntity = await this.findOneId(id);
+  async removeAlbum(id: string) {
+    const album = await this.findOneId(id);
     await this.albumRepository.remove(album);
   }
 }

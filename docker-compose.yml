@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  nestapp:
+    container_name: myapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      DB_TYPE: ${PG_DB_TYPE}
+      PG_HOST: ${PG_HOST}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      PG_PORT: ${PG_PORT}
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app/src
+    networks:
+      - user-defined
+  db:
+    container_name: mydb
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile
+    restart: always
+    ports:
+      - ${PG_PORT}:${PG_PORT}
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+      - logs-volume:/var/log/postgresql
+    networks:
+      - user-defined
+volumes:
+  data-volume:
+  logs-volume:
+
+networks:
+  user-defined:
+    driver: bridge

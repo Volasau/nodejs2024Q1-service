@@ -8,7 +8,7 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/Volasau/nodejs2024Q1-service
 ```
 
 ## Installing NPM modules
@@ -19,54 +19,97 @@ npm install
 
 ## Running application
 
+Make sure you have Docker installed and running.
+
+#### start application:
+
+build a project
+
 ```
-npm start
+docker compose build
+```
+
+start a project
+
+```
+docker compose up -d
+```
+
+#### stop the project
+
+```
+docker compose down
 ```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+
+#### scan for vulnerabilities
+
+```
+npm run docker:scan
+```
 
 ## Testing
 
 After application running open new terminal and enter:
 
-To run all tests without authorization
+#### To run all tests without authorization
 
 ```
+
 npm run test
-```
-
-To run only one of all test suites
 
 ```
-npm run test -- <path to suite>
-```
 
-To run all test with authorization
+## Migration
 
-```
-npm run test:auth
-```
-
-To run only specific test suite with authorization
+#### to create a migration file, open the docker terminal
 
 ```
-npm run test:auth -- <path to suite>
+
+npm run docker:terminat
+
+```
+
+#### create a migration file
+
+```
+
+npm run tmigration:generate
+
+```
+
+#### log out of the docker terminal
+
+```
+
+ctrl+d
+
+```
+
+#### stop the project
+
+```
+
+docker compose down
+
 ```
 
 ### Auto-fix and format
 
 ```
+
 npm run lint
+
 ```
 
 ```
+
 npm run format
+
 ```
 
-### Debugging in VSCode
+```
 
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+```

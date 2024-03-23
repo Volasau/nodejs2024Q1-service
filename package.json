@@ -22,7 +22,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate src/migration/init -d src/db/dataSource.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/db/dataSource.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/db/dataSource.ts"
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/db/dataSource.ts",
+    "docker:scan": "docker scout cves"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
